@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<project basedir="." default="tomcat.deploy" name="wilkystorm">
+    
+    <property environment="env"/>
+    <property name="debuglevel" value="source,lines,vars"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
+    <property name="bin" value="bin"/>
+    <property name="lib" value="WEB-INF/lib"/>
+    <property name="web" value="WEB-INF"/>
+	
+    <path id="wilkystorm.classpath">
+        <!--
+        <pathelement location="WEB-INF/lib/log4j-1.2.15.jar"/>
+        <pathelement location="WEB-INF/lib/mysql-connector-java-5.1.6-bin.jar"/>
+	-->
+        <pathelement location="/usr/share/tomcat6/lib/catalina-ant.jar"/>
+    </path>
+
+    <taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" classpathref="wilkystorm.classpath"/>
+    <taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask" classpathref="wilkystorm.classpath"/>
+    <!--
+    <taskdef resource="org/apache/catalina/ant/catalina.tasks" classpathref="wilkystorm.classpath" />
+    -->
+    <target name="init">
+        <mkdir dir="bin"/>
+        <copy includeemptydirs="false" todir="bin">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+    </target>
+	
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    
+    <target depends="init" name="build-project">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+        <javac debug="true" debuglevel="${debuglevel}" 
+        	destdir="bin" source="${source}" target="${target}">
+            <src path="src"/>
+            <classpath refid="wilkystorm.classpath"/>
+        </javac>
+    </target>
+	
+    <target description="build war file" name="build-war"
+	        depends="clean,build-project">
+	        <war destfile="wilkystorm.war" webxml="${web}/web.xml">
+	             <webinf dir="WEB-INF" includes="*.xml" />
+	             <fileset dir="." includes="js/**,css/**,img/**,*.html,*.js,*.jpg,*.png,*.css"/>
+                     <lib dir="${lib}" excludes="catalina-ant.jar"/>
+	            <classes dir="${bin}" />
+	        </war>
+     </target> 
+
+     <target name="tomcat.undeploy">
+	  <undeploy url="http://localhost:8080/manager" failOnError="false" username="tomcat" password="0Bscur3" path="/wilkystorm"/>
+     </target>
+
+     <target name="tomcat.deploy" depends="build-war,tomcat.undeploy">
+	  <deploy url="http://localhost:8080/manager" username="tomcat" password="0Bscur3" path="/wilkystorm" war="file:/home/wilkydev/play/wilkystorm/wilkystorm.war"/>                   
+     </target>
+
+</project>

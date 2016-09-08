@@ -6,7 +6,7 @@
 		this.products = varietals;
 	});
 
-	app.controller('PanelController', function() {
+	app.controller("PanelController", function() {
 		this.tab = 1;
 		this.setTab = function(newValue) {
 			this.tab = newValue;
@@ -17,6 +17,16 @@
 		this.getAlign = function() {
 	      		return "center";
 	    	};
+	});
+	
+	app.controller("RestController", function($scope, $http) {
+		this.getFrank = function() { $http({
+		    url: "http://localhost:8080/greeting", 
+		    method: "GET",
+		    params: {name: frank}
+		 }).then(function(response) {
+            		$scope.greeting = response.data;
+        	 });};
 	});
 
 	var varietals = [{

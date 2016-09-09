@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
-<project basedir="." default="tomcat.deploy" name="wilkystorm">
+<project basedir="." default="build-war" name="wilkystorm">
     
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
@@ -17,10 +17,9 @@
 	-->
         <pathelement location="/usr/share/tomcat6/lib/catalina-ant.jar"/>
     </path>
-
+    <!--
     <taskdef name="deploy" classname="org.apache.catalina.ant.DeployTask" classpathref="wilkystorm.classpath"/>
     <taskdef name="undeploy" classname="org.apache.catalina.ant.UndeployTask" classpathref="wilkystorm.classpath"/>
-    <!--
     <taskdef resource="org/apache/catalina/ant/catalina.tasks" classpathref="wilkystorm.classpath" />
     -->
     <target name="init">
@@ -55,6 +54,7 @@
 	        </war>
      </target> 
 
+<!--
      <target name="tomcat.undeploy">
 	  <undeploy url="http://localhost:8080/manager" failOnError="false" username="tomcat" password="0Bscur3" path="/wilkystorm"/>
      </target>
@@ -62,5 +62,5 @@
      <target name="tomcat.deploy" depends="build-war,tomcat.undeploy">
 	  <deploy url="http://localhost:8080/manager" username="tomcat" password="0Bscur3" path="/wilkystorm" war="file:/home/wilkydev/play/wilkystorm/wilkystorm.war"/>                   
      </target>
-
+-->
 </project>

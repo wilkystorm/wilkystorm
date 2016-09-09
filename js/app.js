@@ -19,14 +19,16 @@
 	    	};
 	});
 	
-	app.controller("RestController", function($scope, $http) {
-		this.getFrank = function() { $http({
-		    url: "http://localhost:8080/greeting", 
-		    method: "GET",
-		    params: {name: frank}
-		 }).then(function(response) {
-            		$scope.greeting = response.data;
-        	 });};
+	app.controller('RestController', function($scope, $http) {
+		$http.get('http://54.227.167.51/greeting?name=frank').then(function(response) {
+            		$scope.frankGreeting = response.data;
+        	 });
+		$http.get('http://54.227.167.51/greeting?name=randy').then(function(response) {
+            		$scope.randyGreeting = response.data;
+        	 });
+		$http.get('http://54.227.167.51/greeting?name=fred').then(function(response) {
+            		$scope.fredGreeting = response.data;
+        	 });
 	});
 
 	var varietals = [{

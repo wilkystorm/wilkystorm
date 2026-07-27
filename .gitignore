@@ -1,0 +1,27 @@
+.DS_Store
+.gradle/
+build/
+out/
+target/
+
+.env
+.env.*
+!.env.example
+
+*.log
+*.tmp
+
+# Legacy/local runtime artifacts from unrelated tooling
+__pycache__/
+*.py[cod]
+status_state.json
+webcam_checks.csv
+
+# IDE files
+.idea/
+*.iml
+
+# Node assets if local UI experiments are added
+node_modules/
+dist/
+coverage/

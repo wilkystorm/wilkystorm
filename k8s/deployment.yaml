@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wilkystorm
+  namespace: default
+  labels:
+    app: wilkystorm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wilkystorm
+  template:
+    metadata:
+      labels:
+        app: wilkystorm
+    spec:
+      containers:
+        - name: wilkystorm
+          image: wilkystorm:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: XAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: xai-api-secret
+                  key: XAI_API_KEY
+            - name: XAI_API_URL
+              value: "https://api.x.ai/v1"
+            - name: XAI_MODEL
+              value: "grok-4.5"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 6

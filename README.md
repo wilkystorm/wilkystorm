@@ -12,7 +12,7 @@ The app renders a responsive server-side UI and exposes a small JSON API for the
 - Caffeine cache for the daily quote
 - Spring Boot Actuator health endpoint
 - Docker multi-stage image build
-- Kubernetes Deployment and ClusterIP Service
+- Kubernetes Deployment and public Network Load Balancer Service
 
 ## Local Development
 
@@ -80,6 +80,7 @@ Resource names:
 
 - Deployment: `wilkystorm`
 - Service: `wilkystorm`
+- Service type: `LoadBalancer`
 - Container: `wilkystorm`
 - Shared Secret reference: `xai-api-secret`
 - Shared Secret key: `XAI_API_KEY`
@@ -99,6 +100,15 @@ selector:
 That prevents the Wilkystorm Service from selecting `sdc-rtc` pods and prevents `sdc-rtc` Services from selecting Wilkystorm pods.
 
 Wilkystorm reads the same existing Kubernetes Secret used by `sdc-rtc`: `xai-api-secret` with key `XAI_API_KEY` in the `default` namespace. This repository does not own, create, or update that Secret.
+
+The single `wilkystorm` Service is type `LoadBalancer`. Kubernetes still assigns it an internal ClusterIP, and EKS provisions a public internet-facing AWS Network Load Balancer for external traffic. The existing `sdc-rtc` load balancer is separate and is not shared or modified.
+
+HTTPS uses the ACM certificate for:
+
+- `wilkystorm.com`
+- `www.wilkystorm.com`
+
+After AWS assigns the Wilkystorm LoadBalancer hostname, configure GoDaddy DNS so `www.wilkystorm.com` is a CNAME pointing to that hostname. Root-domain DNS for `wilkystorm.com` is handled separately.
 
 Validate manifests:
 
@@ -123,6 +133,6 @@ Deployment runs only when a pull request is closed as merged into `master`. Dire
 
 The deployment job checks out `master`, verifies the merged state, assumes `arn:aws:iam::792028225466:role/wilkystorm-deploy-role` through GitHub OIDC, builds the Wilkystorm image, tags it with the merged commit SHA, pushes it to `792028225466.dkr.ecr.us-east-1.amazonaws.com/wilkystorm`, applies only the Wilkystorm manifests, and updates only `deployment/wilkystorm` container `wilkystorm` in the `default` namespace.
 
-Public DNS and HTTPS exposure are intentionally separate from this internal-service deployment configuration.
+The workflow deploys the single Wilkystorm LoadBalancer Service. AWS provisions a Wilkystorm-specific internet-facing Network Load Balancer; DNS is configured after the LoadBalancer hostname is available.
 
 Do not commit AWS credentials, Grok keys, generated kubeconfigs, or local `.env` files.

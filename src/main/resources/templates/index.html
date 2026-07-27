@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wilkystorm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .heading {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.18);
+        }
+
+        .quote {
+            font-size: 1.15rem;
+            line-height: 1.65;
+        }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen">
+    <main class="max-w-5xl mx-auto px-6 py-10 md:py-14">
+        <header class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mb-12 md:mb-16">
+            <div class="flex items-center gap-x-3">
+                <div class="w-8 h-8 bg-yellow-400 rounded-2xl flex items-center justify-center text-zinc-950 font-bold text-xl">W</div>
+                <div>
+                    <span class="heading text-2xl font-semibold">wilkystorm</span>
+                </div>
+            </div>
+            <div class="text-xs uppercase tracking-[2px] font-medium text-zinc-500">software • craft • purpose</div>
+        </header>
+
+        <section class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div class="card bg-zinc-900 border border-zinc-800 rounded-3xl p-8 shadow-2xl">
+                <div class="flex flex-col items-center text-center">
+                    <img src="/img/mike-wilkinson.jpg"
+                         alt="Mike Wilkinson"
+                         class="w-32 h-32 rounded-3xl object-cover border border-zinc-700 shadow-xl mb-7">
+                    <div class="text-amber-300 mb-3 text-sm font-medium tracking-widest">MIKE WILKINSON</div>
+                    <h1 class="heading text-4xl md:text-5xl font-semibold text-zinc-100 leading-tight">Building useful software with care.</h1>
+                    <p class="mt-6 text-zinc-400 leading-relaxed max-w-sm">
+                        A personal page for software work, learning, and the ideas that keep the craft human.
+                    </p>
+                    <div class="w-16 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent my-8"></div>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <a href="https://www.linkedin.com/in/wilkystorm"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="inline-flex items-center rounded-2xl bg-yellow-400 px-5 py-2 text-sm font-semibold text-zinc-950 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-offset-2 focus:ring-offset-zinc-950">
+                            LinkedIn
+                        </a>
+                        <a href="https://github.com/wilkystorm"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="inline-flex items-center rounded-2xl bg-zinc-800 px-5 py-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:ring-offset-zinc-950">
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <section class="card bg-zinc-900 border border-zinc-800 rounded-3xl p-8 md:p-10 shadow-2xl" aria-labelledby="quote-heading">
+                    <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between mb-8">
+                        <div>
+                            <div class="inline-flex items-center gap-x-2 bg-zinc-800 text-yellow-400 text-sm font-medium px-5 py-2 rounded-2xl mb-5">
+                                <span class="w-2 h-2 bg-current rounded-full animate-pulse"></span>
+                                TODAY • <span th:text="${date}">July 27, 2026</span>
+                            </div>
+                            <h2 id="quote-heading" class="heading text-2xl font-semibold text-zinc-100">Fred Rogers Quote</h2>
+                        </div>
+                        <button id="refreshQuote"
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-2xl border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 hover:border-yellow-400 hover:text-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-offset-2 focus:ring-offset-zinc-950">
+                            Refresh
+                        </button>
+                    </div>
+
+                    <blockquote class="quote text-2xl text-zinc-100 font-light" aria-live="polite">
+                        <span id="quoteText" th:text="${quote}">Anyone who does anything to help a child is a hero to me.</span>
+                    </blockquote>
+                    <p id="quoteStatus"
+                       class="mt-6 text-sm text-zinc-500"
+                       th:text="${fallback} ? 'Using a safe fallback quote until xAI is configured.' : 'Generated by Grok and cached by the Wilkystorm service.'">
+                        Generated by Grok and cached by the Wilkystorm service.
+                    </p>
+                </section>
+
+                <section class="grid gap-4 sm:grid-cols-2">
+                    <div class="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-6">
+                        <div class="text-amber-300 mb-3 text-xs font-medium tracking-widest">FOCUS</div>
+                        <p class="text-zinc-300 leading-relaxed">
+                            Quality software should serve a clear purpose and respect the people who use it.
+                        </p>
+                    </div>
+                    <div class="bg-zinc-900/70 border border-zinc-800 rounded-3xl p-6">
+                        <div class="text-amber-300 mb-3 text-xs font-medium tracking-widest">VALUES</div>
+                        <p class="text-zinc-300 leading-relaxed">
+                            Mastery, humility, collaboration, openness, creativity, and practical progress.
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <footer class="mt-12 text-center">
+            <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-xs text-zinc-500">
+                <div>Built with Codex</div>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        const quoteText = document.getElementById('quoteText');
+        const quoteStatus = document.getElementById('quoteStatus');
+        const refreshButton = document.getElementById('refreshQuote');
+        const fallbackQuote = 'Anyone who does anything to help a child is a hero to me.';
+
+        async function refreshQuote() {
+            refreshButton.disabled = true;
+            refreshButton.textContent = 'Loading';
+            quoteStatus.textContent = 'Requesting a fresh quote from the Wilkystorm service...';
+
+            try {
+                const response = await fetch('/api/quote/refresh', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error(`Quote request failed with status ${response.status}`);
+                }
+                const payload = await response.json();
+                quoteText.textContent = payload.quote || fallbackQuote;
+                quoteStatus.textContent = payload.fallback
+                    ? 'Using a safe fallback quote until xAI is configured.'
+                    : 'Generated by Grok and cached by the Wilkystorm service.';
+            } catch (error) {
+                quoteText.textContent = fallbackQuote;
+                quoteStatus.textContent = 'The quote service is unavailable. Showing a safe fallback quote.';
+            } finally {
+                refreshButton.disabled = false;
+                refreshButton.textContent = 'Refresh';
+            }
+        }
+
+        refreshButton.addEventListener('click', refreshQuote);
+    </script>
+</body>
+</html>

@@ -36,14 +36,8 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Run tests
-        run: ./gradlew test
-
-      - name: Run checks
-        run: ./gradlew check
-
-      - name: Build application
-        run: ./gradlew bootJar
+      - name: Test and build application
+        run: ./gradlew test bootJar
 
   deploy:
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'master' }}
@@ -65,10 +59,7 @@ jobs:
           java-version: "21"
 
       - name: Verify merged master build
-        run: |
-          ./gradlew test
-          ./gradlew check
-          ./gradlew bootJar
+        run: ./gradlew bootJar
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4

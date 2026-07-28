@@ -102,7 +102,7 @@ public class GrokApiClient {
         return content instanceof String value ? value : "";
     }
 
-    private FredRogersQuote fallbackQuote() {
+    public FredRogersQuote fallbackQuote() {
         return new FredRogersQuote(LocalDate.now(), FALLBACK_QUOTE, true);
     }
 

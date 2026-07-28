@@ -5,7 +5,6 @@ import com.example.wilkystorm.service.QuoteService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.format.DateTimeFormatter;
@@ -33,13 +32,6 @@ public class WilkystormController {
     @GetMapping("/api/quote")
     @ResponseBody
     public FredRogersQuote apiQuote() {
-        return quoteService.getToday();
-    }
-
-    @PostMapping("/api/quote/refresh")
-    @ResponseBody
-    public FredRogersQuote refreshQuote() {
-        quoteService.clearCache();
         return quoteService.getToday();
     }
 }

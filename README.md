@@ -2,17 +2,17 @@
 
 Wilkystorm is a modern personal website and backend microservice. It preserves the original site's identity, profile links, and personal message while replacing the old AngularJS/Tomcat WAR and binary-only quote service with a Spring Boot application.
 
-The app renders a responsive server-side UI and exposes a small JSON API for the page to refresh a Fred Rogers quote. Grok is called only by the backend, never by browser code.
+The app renders a responsive server-side UI and exposes a small JSON API for reading the current Fred Rogers quote. Grok is called only by the backend on startup and by a scheduled daily refresh, never by browser code.
 
 ## Architecture
 
 - Spring Boot 3.3.4, Java 21
 - Thymeleaf server-rendered UI
 - Spring MVC JSON API
-- Caffeine cache for the daily quote
+- Scheduled in-memory daily quote
 - Spring Boot Actuator health endpoint
 - Docker multi-stage image build
-- Kubernetes Deployment and public Network Load Balancer Service
+- Single-replica Kubernetes Deployment and public Network Load Balancer Service
 
 ## Local Development
 
@@ -31,7 +31,7 @@ http://localhost:8080
 API:
 
 ```text
-POST /api/quote/refresh
+GET /api/quote
 GET /actuator/health
 ```
 
@@ -45,9 +45,9 @@ XAI_API_URL=https://api.x.ai/v1
 XAI_MODEL=grok-4.5
 ```
 
-`XAI_API_KEY` is the primary API-key variable, matching the `sdc-rtc` xAI convention. `GROK_API_KEY` is also supported as a backward-compatible fallback. When neither key is present or the Grok request fails, the backend returns a safe fallback quote.
+`XAI_API_KEY` is the primary API-key variable, matching the `sdc-rtc` xAI convention. `GROK_API_KEY` is also supported as a backward-compatible fallback. When neither key is present or the Grok request fails and no previous successful quote is available, the backend returns a safe fallback quote.
 
-The frontend does not receive the API key. It calls only the Wilkystorm backend.
+The frontend does not receive the API key. Browser refreshes and `GET /api/quote` return the stored quote and do not call Grok.
 
 ## Grok Integration
 
@@ -57,7 +57,9 @@ The backend sends a chat completion request to:
 POST ${XAI_API_URL}/chat/completions
 ```
 
-The prompt asks for exactly one meaningful and uplifting Fred Rogers quote and instructs the model to return only the quote text. The result is cached for 24 hours by the `fredRogersQuote` cache to avoid unnecessary repeated Grok requests.
+The prompt asks for exactly one meaningful and uplifting Fred Rogers quote and instructs the model to return only the quote text. The service loads one quote when the application starts and refreshes it once daily at 6:00 AM America/New_York.
+
+The current quote is stored in memory. If the scheduled Grok request returns a fallback response or fails, Wilkystorm keeps the last successful quote when possible. If no successful quote exists yet, it uses the safe fallback quote.
 
 ## Build And Test
 
@@ -79,6 +81,7 @@ docker build -t wilkystorm:latest .
 Resource names:
 
 - Deployment: `wilkystorm`
+- Replicas: `1`
 - Service: `wilkystorm`
 - Service type: `LoadBalancer`
 - Container: `wilkystorm`
@@ -100,6 +103,8 @@ selector:
 That prevents the Wilkystorm Service from selecting `sdc-rtc` pods and prevents `sdc-rtc` Services from selecting Wilkystorm pods.
 
 Wilkystorm reads the same existing Kubernetes Secret used by `sdc-rtc`: `xai-api-secret` with key `XAI_API_KEY` in the `default` namespace. This repository does not own, create, or update that Secret.
+
+The Deployment intentionally runs one replica so all users see the same in-memory daily quote. Running multiple replicas without shared quote persistence could show different quotes from different pods.
 
 The single `wilkystorm` Service is type `LoadBalancer`. Kubernetes still assigns it an internal ClusterIP, and EKS provisions a public internet-facing AWS Network Load Balancer for external traffic. The existing `sdc-rtc` load balancer is separate and is not shared or modified.
 
@@ -129,9 +134,9 @@ kubectl rollout status deployment/wilkystorm --timeout=180s
 
 `.github/workflows/deploy.yml` runs only for pull request events targeting `master`.
 
-When a pull request is opened, synchronized, or reopened, the workflow runs Gradle tests and checks. Changes pushed to an open pull request trigger another validation build. The workflow does not authenticate to AWS, build a Docker image, push to ECR, or deploy during these validation events.
+When a pull request is opened, synchronized, or reopened, the workflow runs the small focused test suite and builds the application with `./gradlew test bootJar`. Changes pushed to an open pull request trigger another validation build. The workflow does not authenticate to AWS, build a Docker image, push to ECR, or deploy during these validation events.
 
-Deployment runs only when a pull request is closed as successfully merged into `master`. The deployment job checks out the exact merge commit, runs a fresh Gradle build and tests, assumes `arn:aws:iam::792028225466:role/wilkystorm-deploy-role` through GitHub OIDC, builds the Wilkystorm image, tags it with the merge commit SHA, pushes it to `792028225466.dkr.ecr.us-east-1.amazonaws.com/wilkystorm`, applies only the Wilkystorm manifests, and updates only `deployment/wilkystorm` container `wilkystorm` in the `default` namespace.
+Deployment runs only when a pull request is closed as successfully merged into `master`. The deployment job checks out the exact merge commit, builds the merged commit with `./gradlew bootJar` without repeating tests, assumes `arn:aws:iam::792028225466:role/wilkystorm-deploy-role` through GitHub OIDC, builds the Wilkystorm image, tags it with the merge commit SHA, pushes it to `792028225466.dkr.ecr.us-east-1.amazonaws.com/wilkystorm`, applies only the Wilkystorm manifests, and updates only `deployment/wilkystorm` container `wilkystorm` in the `default` namespace.
 
 Direct pushes to any branch, including `master`, do not trigger this workflow. Closing a pull request without merging does not build or deploy. Because the workflow no longer listens for `push` events, a pull request merge should produce only one workflow run for the merge event.
 

@@ -127,11 +127,13 @@ kubectl rollout status deployment/wilkystorm --timeout=180s
 
 ## GitHub Actions
 
-`.github/workflows/deploy.yml` runs tests and builds on every branch push. Pull requests targeting `master` are also validated.
+`.github/workflows/deploy.yml` runs only for pull request events targeting `master`.
 
-Deployment runs only when a pull request is closed as merged into `master`. Direct pushes to `master` build but do not deploy, feature branch pushes build but do not deploy, and closed unmerged pull requests do not deploy.
+When a pull request is opened, synchronized, or reopened, the workflow runs Gradle tests and checks. Changes pushed to an open pull request trigger another validation build. The workflow does not authenticate to AWS, build a Docker image, push to ECR, or deploy during these validation events.
 
-The deployment job checks out `master`, verifies the merged state, assumes `arn:aws:iam::792028225466:role/wilkystorm-deploy-role` through GitHub OIDC, builds the Wilkystorm image, tags it with the merged commit SHA, pushes it to `792028225466.dkr.ecr.us-east-1.amazonaws.com/wilkystorm`, applies only the Wilkystorm manifests, and updates only `deployment/wilkystorm` container `wilkystorm` in the `default` namespace.
+Deployment runs only when a pull request is closed as successfully merged into `master`. The deployment job checks out the exact merge commit, runs a fresh Gradle build and tests, assumes `arn:aws:iam::792028225466:role/wilkystorm-deploy-role` through GitHub OIDC, builds the Wilkystorm image, tags it with the merge commit SHA, pushes it to `792028225466.dkr.ecr.us-east-1.amazonaws.com/wilkystorm`, applies only the Wilkystorm manifests, and updates only `deployment/wilkystorm` container `wilkystorm` in the `default` namespace.
+
+Direct pushes to any branch, including `master`, do not trigger this workflow. Closing a pull request without merging does not build or deploy. Because the workflow no longer listens for `push` events, a pull request merge should produce only one workflow run for the merge event.
 
 The workflow deploys the single Wilkystorm LoadBalancer Service. AWS provisions a Wilkystorm-specific internet-facing Network Load Balancer; DNS is configured after the LoadBalancer hostname is available.
 
